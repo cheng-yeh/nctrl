@@ -3,3 +3,5 @@ outputs
 __pycache__
 /.hypothesis
 batch
+*.sbatch
+*.out

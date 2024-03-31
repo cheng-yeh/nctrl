@@ -4,16 +4,16 @@ dataloader:
   num_workers: 8
   pin_memory: true
 dataset:
-  data_path: data/broderick2019/
+  data_path: data/broderick2019_eeg/Natural\ Speech/output_tdrl/
   n_validation: 1024
-model: "NCTRL"
+model: "TDRL"
 model_kwargs:
-  x_dim: 24
-  z_dim: 24
-  lags: 5
-  n_class: 5
+  x_dim: 128
+  z_dim: 128
+  lags: 2
+  n_class: 1
   hidden_dim: 128
-  embedding_dim: 4
+  embedding_dim: 2
   lr: 5.0e-4
   beta: 2.0e-3
   gamma: 2.0e-2
@@ -21,10 +21,10 @@ model_kwargs:
   hmm_mode: 'mle_scaled:H'
 trainer:
   accelerator: gpu
-  default_root_dir: outputs/alice_eeg/z24_c5_lags5_len4_Nlayer3/nctrl
+  default_root_dir: outputs/alice_eeg/z128_c1_lags2_len2_Nlayer3/tdrl
   devices:
   - 0
   fast_dev_run: false
-  max_epochs: 50
+  max_epochs: 200
   val_check_interval: 0.1
 

@@ -30,6 +30,24 @@ class ARHMNLICADataset(Dataset):
         c_t = self.c[idx]
         return x_t, z_t, c_t
 
+class NLICADataset(Dataset):
+    def __init__(self, data_path):
+        super().__init__()
+        self.path = Path(data_path)
+        self.raw_data = pickle.load(open(self.path/"data.pkl", "rb"))
+        self.meta = json.load(open(self.path/"meta.json", "r"))
+        self.data = {}
+        self.z = torch.Tensor(self.raw_data["Z"]) # (n_samples, n_time_steps, n_latent)
+        self.x = torch.Tensor(self.raw_data["X"])  # (n_samples, n_time_steps, n_features)
+        # self.meta = self.raw_data["meta"]
+    def __len__(self):
+        return len(self.x) 
+    
+    def __getitem__(self, idx):
+        x_t = self.x[idx]
+        z_t = self.z[idx]
+        return x_t, z_t, _
+
 class SimulationDatasetTSTwoSampleNS(Dataset):
     
     def __init__(self, data_path, c=False):

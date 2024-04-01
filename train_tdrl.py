@@ -11,7 +11,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
-from datasets.simulation import ARHMNLICADataset
+from datasets.simulation import NLICADataset
 import models.simulation as sim_models
 import warnings
 from pathlib import Path
@@ -23,7 +23,7 @@ def main(args):
     # seed everything
     config = yaml.safe_load(open(args.config, 'r'))
     pl.seed_everything(args.seed)
-    data = ARHMNLICADataset(data_path=config['dataset']['data_path'])
+    data = NLICADataset(data_path=config['dataset']['data_path'])
     n_validation = config['dataset']['n_validation']
     train_data, valid_data = random_split(
         data, [len(data) - n_validation, n_validation])
@@ -40,7 +40,7 @@ def main(args):
                               pin_memory=config['dataloader']['pin_memory'])
     model_class = getattr(sim_models, config['model'])
     model = model_class(**config['model_kwargs'])
-    model.A = data.A
+    #model.A = data.A
     tb_logger = pl.loggers.TensorBoardLogger(
         save_dir=config['trainer']['default_root_dir']
     )

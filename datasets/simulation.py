@@ -46,7 +46,7 @@ class NLICADataset(Dataset):
     def __getitem__(self, idx):
         x_t = self.x[idx]
         z_t = self.z[idx]
-        return x_t, z_t, _
+        return x_t, z_t, z_t
 
 class SimulationDatasetTSTwoSampleNS(Dataset):
     

@@ -20,7 +20,8 @@ class TDRL(pl.LightningModule):
             lr=1e-4,
             beta=0.0025,
             gamma=0.0075,
-            correlation='Pearson'):
+            correlation='Pearson',
+            **kwargs):
         '''Nonlinear ICA for nonparametric stationary processes'''
         super().__init__()
         self.save_hyperparameters()

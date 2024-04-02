@@ -44,14 +44,14 @@ def main(args):
     tb_logger = pl.loggers.TensorBoardLogger(
         save_dir=config['trainer']['default_root_dir']
     )
-    checkpoint_callback = ModelCheckpoint(monitor='val/mcc',
+    checkpoint_callback = ModelCheckpoint(monitor='val/loss',
                                           save_top_k=3,
                                           mode='min')
-    early_stop_callback = EarlyStopping(monitor="val/mcc",
-                                        stopping_threshold=0.99,
+    early_stop_callback = EarlyStopping(monitor="val/loss",
+                                        #stopping_threshold=0.99,
                                         patience=1_000,
                                         verbose=False,
-                                        mode="max")
+                                        mode="min")
     logger_list = [tb_logger]
     trainer = pl.Trainer(
         logger=logger_list,

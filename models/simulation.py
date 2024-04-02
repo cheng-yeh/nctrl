@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as D
-from .nets import MLP, BetaVAE_MLP, NPTransitionPrior, NPChangeTransitionPrior
+from .nets import MLP, BetaVAE_CNN, BetaVAE_MLP, NPTransitionPrior, NPChangeTransitionPrior
 from .hmm import HMM
 from .metrics.correlation import compute_mcc, compute_acc
 
@@ -34,6 +34,7 @@ class TDRL(pl.LightningModule):
         self.beta = beta
         self.gamma = gamma
         self.correlation = correlation
+        #self.net = BetaVAE_CNN(z_dim=z_dim, nc=x_dim, hidden_dim=hidden_dim)
         self.net = BetaVAE_MLP(input_dim=x_dim,
                                z_dim=z_dim,
                                hidden_dim=hidden_dim)

@@ -35,6 +35,8 @@ class NLICADataset(Dataset):
         super().__init__()
         self.path = Path(data_path)
         self.raw_data = pickle.load(open(self.path/"data.pkl", "rb"))
+        self.raw_data["Z"] /= self.raw_data["Z"].std()
+        self.raw_data["X"] /= self.raw_data["X"].std()
         self.meta = json.load(open(self.path/"meta.json", "r"))
         self.data = {}
         self.z = torch.Tensor(self.raw_data["Z"]) # (n_samples, n_time_steps, n_latent)

@@ -1,6 +1,6 @@
 dataloader:
-  train_batch_size: 64
-  valid_batch_size: 256
+  train_batch_size: 50
+  valid_batch_size: 200
   num_workers: 8
   pin_memory: true
 dataset:
@@ -21,7 +21,7 @@ model_kwargs:
   hmm_mode: 'mle_scaled:H'
 trainer:
   accelerator: gpu
-  default_root_dir: outputs/alice_eeg/z128_c1_lags2_len2_Nlayer3/tdrl
+  default_root_dir: outputs/broderick2019_eeg/z128_c1_lags2_len2_Nlayer3/tdrl
   devices:
   - 0
   fast_dev_run: false

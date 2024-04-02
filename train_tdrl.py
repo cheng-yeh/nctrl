@@ -16,8 +16,8 @@ import models.simulation as sim_models
 import warnings
 from pathlib import Path
 warnings.filterwarnings('ignore')
-# torch.set_float32_matmul_precision('high')
-
+torch.set_float32_matmul_precision('high')
+#os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:<enter-size-here>"
 
 def main(args):
     # seed everything
@@ -45,8 +45,8 @@ def main(args):
         save_dir=config['trainer']['default_root_dir']
     )
     checkpoint_callback = ModelCheckpoint(monitor='val/mcc',
-                                          save_top_k=1,
-                                          mode='max')
+                                          save_top_k=3,
+                                          mode='min')
     early_stop_callback = EarlyStopping(monitor="val/mcc",
                                         stopping_threshold=0.99,
                                         patience=1_000,

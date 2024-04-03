@@ -27,7 +27,7 @@ def main(args):
 
     eval_loader = DataLoader(data,
                              shuffle=False,
-                             batch_size=config['dataloader']['valid_batch_size'],
+                             batch_size=1,
                              num_workers=config['dataloader']['num_workers'],
                              pin_memory=config['dataloader']['pin_memory'])
     
@@ -48,7 +48,7 @@ def main(args):
     # Set the model to evaluation mode
     model.eval()
 
-    record = {'X': [], 'Z': []}
+    record = {'X': [], 'X_recon':[], 'Z_est': []}
 
     # Perform evaluation
     with torch.no_grad():
@@ -57,17 +57,20 @@ def main(args):
             x, _, _ = batch
             x_recon, mus, logvars, z_est = model.net(x)
 
-            record['X'].extend(list(x_recon))
-            record['Z'].extend(list(z_est))
+            record['X'].extend(list(x.numpy()))
+            record['X_recon'].extend(list(x_recon.numpy()))
+            record['Z_est'].extend(list(z_est.numpy()))
 
     record['X'] = np.array(record['X'])
-    record['Z'] = np.array(record['Z'])
+    record['X_recon'] = np.array(record['X_recon'])
+    record['Z_est'] = np.array(record['Z_est'])
 
     print(record['X'].shape)
-    print(record['Z'].shape)
+    print(record['X_recon'].shape)
+    print(record['Z_est'].shape)
 
     # Save the dictionary to a .npz file
-    np.savez(config['dataset']['data_path'] + 'x_z.npz', **data_dict)
+    np.savez(config['dataset']['data_path'] + 'x_z.npz', **record)
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)

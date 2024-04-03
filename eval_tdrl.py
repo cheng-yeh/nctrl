@@ -34,7 +34,7 @@ def main(args):
     # Load the checkpoint
     param = 'z128_c1_lags2_len2_Nlayer3'
     version = 0
-    ckpt = 'epoch\=1-step\=1848'
+    ckpt = 'epoch=29-step=29245'
     checkpoint_path = f'outputs/broderick2019_eeg/{param}/tdrl/lightning_logs/version_{version}/checkpoints/{ckpt}.ckpt'
     checkpoint = torch.load(checkpoint_path)
 

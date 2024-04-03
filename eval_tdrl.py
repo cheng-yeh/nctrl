@@ -48,13 +48,26 @@ def main(args):
     # Set the model to evaluation mode
     model.eval()
 
+    record = {'X': [], 'Z': []}
+
     # Perform evaluation
     with torch.no_grad():
         for batch in eval_loader:
             # (batch_size, lags+length, x_dim) (batch_size, lags+length, z_dim) (batch_size, lags+length)
             x, _, _ = batch
             x_recon, mus, logvars, z_est = model.net(x)
-            print("Shape of x_recon and z_est: ", x_recon.shape, z_est.shape)
+
+            record['X'].extend(list(x_recon))
+            record['Z'].extend(list(z_est))
+
+    record['X'] = np.array(record['X'])
+    record['Z'] = np.array(record['Z'])
+
+    print(record['X'].shape)
+    print(record['Z'].shape)
+
+    # Save the dictionary to a .npz file
+    np.savez(config['dataset']['data_path'] + 'x_z.npz', **data_dict)
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)

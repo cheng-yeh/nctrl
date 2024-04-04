@@ -79,8 +79,12 @@ class TDRL(pl.LightningModule):
         x, _, _ = batch
         batch_size, lags_and_length, _ = x.shape
         x_recon, mus, logvars, z_est = self.net(x)
-        print("mus: ", mus)
-        print("logvars: ", logvars)
+        #print("batch size: ", batch_size)
+        #print("x.shape: ", x.shape)
+        #print("x", x)
+        #print("x_recon", x_recon)
+        #print("mus: ", mus)
+        #print("logvars: ", logvars)
 	# recon_loss = self.reconstruction_loss(x, x_recon)
         recon_loss = self.reconstruction_loss(x[:, :self.lags], x_recon[:, :self.lags]) + \
             (self.reconstruction_loss(

@@ -16,7 +16,8 @@ import models.simulation as sim_models
 import warnings
 from pathlib import Path
 warnings.filterwarnings('ignore')
-torch.set_float32_matmul_precision('high')
+#torch.set_float32_matmul_precision('high')
+torch.set_float32_matmul_precision('medium')
 #os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:<enter-size-here>"
 
 def main(args):
@@ -48,8 +49,8 @@ def main(args):
                                           save_top_k=3,
                                           mode='min')
     early_stop_callback = EarlyStopping(monitor="val/loss",
-                                        #stopping_threshold=0.99,
-                                        patience=1_000,
+                                        stopping_threshold=0.01,
+                                        patience=10_000,
                                         verbose=False,
                                         mode="min")
     logger_list = [tb_logger]

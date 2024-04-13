@@ -7,6 +7,6 @@ batch
 lightning_logs
 
 # Ignore all files under data/ except .py and .ipynb files
-data/**
-!data/**/*.py
-!data/**/*.ipynb
+data/
+!*.py
+!*.ipynb

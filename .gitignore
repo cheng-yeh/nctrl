@@ -4,6 +4,7 @@ __pycache__
 batch
 *.sbatch
 *.out
+lightning_logs
 
 # Ignore all files under data/ except .py and .ipynb files
 data/**

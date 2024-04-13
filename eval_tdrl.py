@@ -32,10 +32,12 @@ def main(args):
                              pin_memory=config['dataloader']['pin_memory'])
     
     # Load the checkpoint
-    param = 'z128_c1_lags2_len2_Nlayer3'
-    version = 0
-    ckpt = 'epoch=29-step=29245'
-    checkpoint_path = f'outputs/broderick2019_eeg/{param}/tdrl/lightning_logs/version_{version}/checkpoints/{ckpt}.ckpt'
+    dataset = 'broderick2019_eeg'
+    data_folder = 'lfreq10_hfreqNone_len10'
+    param = 'z128_c1_lags2_len8_Nlayer3'
+    version = 8
+    ckpt = 'epoch=159-step=17033.ckpt'
+    checkpoint_path = f'outputs/{dataset}/{data_folder}/{param}/tdrl/lightning_logs/version_{version}/checkpoints/{ckpt}'
     checkpoint = torch.load(checkpoint_path)
 
     # Extract the model state_dict from the checkpoint

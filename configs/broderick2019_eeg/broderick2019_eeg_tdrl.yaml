@@ -4,7 +4,7 @@ dataloader:
   num_workers: 8
   pin_memory: true
 dataset:
-  data_path: "data/broderick2019_eeg/Natural Speech/one_subject/lfreq10_hfreqNone_len10"
+  data_path: "data/broderick2019_eeg/Natural Speech/train_data/one_subject_five_runs/lfreq10_hfreqNone_len10/"
   n_validation: 1024
 model: "TDRL"
 model_kwargs:
@@ -21,7 +21,7 @@ model_kwargs:
   hmm_mode: 'mle_scaled:H'
 trainer:
   accelerator: gpu
-  default_root_dir: outputs/broderick2019_eeg/lfreq10_hfreqNone_len10/z128_c1_lags2_len8_Nlayer3/tdrl
+  default_root_dir: outputs/broderick2019_eeg/one_subject_five_runs_lfreq10_hfreqNone_len10/z128_c1_lags2_len8_Nlayer3/tdrl/
   devices:
   - 0
   fast_dev_run: false

@@ -1,7 +1,11 @@
-/data
 outputs
 __pycache__
 /.hypothesis
 batch
 *.sbatch
 *.out
+
+# Ignore all files under data/ except .py and .ipynb files
+data/**
+!data/**/*.py
+!data/**/*.ipynb

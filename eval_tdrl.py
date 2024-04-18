@@ -22,6 +22,12 @@ torch.set_float32_matmul_precision('high')
 def main(args):
     # seed everything
     config = yaml.safe_load(open(args.config, 'r'))
+    config['dataset']['data_path'] = config['dataset']['data_path'].replace("Subject1", "Subject"+args.subject)
+    config['dataset']['data_path'] = config['dataset']['data_path'].replace("Run1", "Run"+args.run)
+    if not os.path.exists(config['dataset']['data_path']):
+        print(f"{config['dataset']['data_path']} does not exists!")
+        return
+    print(f"Start processing subject {args.subject}'s run {args.run}")
     pl.seed_everything(args.seed)
     data = NLICADataset(data_path=config['dataset']['data_path'])
 
@@ -33,12 +39,14 @@ def main(args):
     
     # Load the checkpoint
     dataset = 'broderick2019_eeg'
-    data_folder = 'lfreq10_hfreqNone_len10'
+    data_folder = f'subject{args.subject}_bestruns3_lfreq10_hfreqNone_len10'
     param = 'z128_c1_lags2_len8_Nlayer3'
-    version = 8
-    ckpt = 'epoch=159-step=17033.ckpt'
-    checkpoint_path = f'outputs/{dataset}/{data_folder}/{param}/tdrl/lightning_logs/version_{version}/checkpoints/{ckpt}'
-    checkpoint = torch.load(checkpoint_path)
+    version = 0
+    checkpoint_path = f'outputs/{dataset}/{data_folder}/{param}/tdrl/lightning_logs/version_{version}/checkpoints/'
+    # List all files in the directory and sort them
+    ckpts = sorted(os.listdir(checkpoint_path))
+    last_ckpt_path = os.path.join(checkpoint_path, ckpts[-1])
+    checkpoint = torch.load(last_ckpt_path)
 
     # Extract the model state_dict from the checkpoint
     model_state_dict = checkpoint['state_dict']
@@ -82,9 +90,21 @@ if __name__ == '__main__':
         type=str,
         required=True
     )
-
     argparser.add_argument(
         '-s',
+        '--subject',
+        type=str,
+        default=1
+    )
+    argparser.add_argument(
+        '-r',
+        '--run',
+        type=str,
+        default=1
+    )
+
+    argparser.add_argument(
+        '-e',
         '--seed',
         type=int,
         default=770

@@ -23,6 +23,13 @@ torch.set_float32_matmul_precision('medium')
 def main(args):
     # seed everything
     config = yaml.safe_load(open(args.config, 'r'))
+    config['dataset']['data_path'] = config['dataset']['data_path'].replace("Subject1", "Subject"+args.subject)
+    config['trainer']['default_root_dir'] = config['trainer']['default_root_dir'].replace("subject1", "subject"+args.subject)
+    if not os.path.exists(config['dataset']['data_path']):
+        print(f"{config['dataset']['data_path']} does not exists!")
+        return
+    print(f"Start processing subject {args.subject} with path {config['dataset']['data_path']}")
+    print(f"Output files will be saved to {config['trainer']['default_root_dir']}")
     pl.seed_everything(args.seed)
     data = NLICADataset(data_path=config['dataset']['data_path'])
     n_validation = config['dataset']['n_validation']
@@ -70,9 +77,14 @@ if __name__ == '__main__':
         type=str,
         required=True
     )
-
     argparser.add_argument(
         '-s',
+        '--subject',
+        type=str,
+        default=1
+    )
+    argparser.add_argument(
+        '-e',
         '--seed',
         type=int,
         default=770

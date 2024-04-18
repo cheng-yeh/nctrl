@@ -2,7 +2,6 @@ outputs
 __pycache__
 /.hypothesis
 batch
-*.sbatch
 *.out
 lightning_logs
 

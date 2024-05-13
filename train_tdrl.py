@@ -23,7 +23,7 @@ torch.set_float32_matmul_precision('medium')
 def main(args):
     # seed everything
     config = yaml.safe_load(open(args.config, 'r'))
-    config['dataset']['data_path'] = config['dataset']['data_path'].replace("Subject1", "Subject"+args.subject)
+    config['dataset']['data_path'] = config['dataset']['data_path'].replace("subject1", "subject"+args.subject)
     config['trainer']['default_root_dir'] = config['trainer']['default_root_dir'].replace("subject1", "subject"+args.subject)
     if not os.path.exists(config['dataset']['data_path']):
         print(f"{config['dataset']['data_path']} does not exists!")

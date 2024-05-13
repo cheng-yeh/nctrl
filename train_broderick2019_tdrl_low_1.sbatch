@@ -17,5 +17,5 @@ srun pip install torch==1.13.1 torchvision torchaudio
 srun pip install -r requirements.txt
 for ((s=1; s<=5; s++))
 do
-    srun python train_tdrl.py -c configs/broderick2019_eeg/broderick2019_eeg_tdrl_train.yaml -s $s
+    srun python train_tdrl.py -c configs/broderick2019_eeg/broderick2019_eeg_tdrl_train_low.yaml -s $s
 done

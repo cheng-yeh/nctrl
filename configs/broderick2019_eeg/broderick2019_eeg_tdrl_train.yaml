@@ -1,10 +1,10 @@
 dataloader:
-  train_batch_size: 100
-  valid_batch_size: 400
+  train_batch_size: 50
+  valid_batch_size: 256
   num_workers: 8
   pin_memory: true
 dataset:
-  data_path: "data/broderick2019_eeg/Natural Speech/train_data/subject1_bestruns3/lfreq10_hfreqNone_len10/"
+  data_path: "data/broderick2019_eeg/Natural Speech/train_data/subject1_bestruns5_stride2/lfreq10_hfreqNone_len10/"
   n_validation: 1024
 model: "TDRL"
 model_kwargs:
@@ -21,10 +21,10 @@ model_kwargs:
   hmm_mode: 'mle_scaled:H'
 trainer:
   accelerator: gpu
-  default_root_dir: outputs/broderick2019_eeg/subject1_run3_lfreq10_hfreqNone_len10/z128_c1_lags2_len8_Nlayer3/tdrl/
+  default_root_dir: outputs/broderick2019_eeg/subject1_bestrun5_stride2_lfreq10_hfreqNone_len10/z128_c1_lags2_len8_Nlayer3/tdrl/
   devices:
   - 0
   fast_dev_run: false
-  max_epochs: 100
-  val_check_interval: 0.1
+  max_epochs: 150
+  val_check_interval: 0.5
 

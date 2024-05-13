@@ -11,3 +11,5 @@ matplotlib
 opencv-python
 PyYAML
 gymnasium
+networkx
+mne

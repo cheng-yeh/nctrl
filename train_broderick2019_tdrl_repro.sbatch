@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J train_tdrl                           # Job name
+#SBATCH -J train_tdrl_sigmoid                   # Job name
 #SBATCH --account=gts-rs275-paid                # charge account
 #SBATCH -N 1 --gres=gpu:A100:1                  # Number of nodes and cores per node required
 #SBATCH --mem-per-gpu=80G                       # Memory per core
@@ -15,7 +15,7 @@ srun conda create -n nctrl python=3.10 -y
 srun conda activate nctrl
 srun pip install torch==1.13.1 torchvision torchaudio
 srun pip install -r requirements.txt
-for ((s=1; s<=5; s++))
+for ((s=1; s<=2; s++))
 do
-    srun python train_tdrl.py -c configs/broderick2019_eeg/broderick2019_eeg_tdrl_train.yaml -s $s
+    srun python train_tdrl.py -c configs/broderick2019_eeg/broderick2019_eeg_tdrl_train_repro.yaml -s $s
 done

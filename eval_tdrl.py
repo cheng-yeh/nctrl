@@ -24,6 +24,7 @@ def main(args):
     config = yaml.safe_load(open(args.config, 'r'))
     config['dataset']['data_path'] = config['dataset']['data_path'].replace("Subject1", "Subject"+args.subject)
     config['dataset']['data_path'] = config['dataset']['data_path'].replace("Run1", "Run"+args.run)
+    config['trainer']['default_root_dir'] = config['trainer']['default_root_dir'].replace("subject1", "subject"+args.subject)
     if not os.path.exists(config['dataset']['data_path']):
         print(f"{config['dataset']['data_path']} does not exists!")
         return
@@ -39,13 +40,14 @@ def main(args):
     
     # Load the checkpoint
     dataset = 'broderick2019_eeg'
-    data_folder = f'subject{args.subject}_bestruns3_lfreq10_hfreqNone_len10'
+    data_folder = f'subject{args.subject}_bestrun5_stride2_lfreq10_hfreqNone_len10'
     param = 'z128_c1_lags2_len8_Nlayer3'
     version = 0
     checkpoint_path = f'outputs/{dataset}/{data_folder}/{param}/tdrl/lightning_logs/version_{version}/checkpoints/'
     # List all files in the directory and sort them
     ckpts = sorted(os.listdir(checkpoint_path))
     last_ckpt_path = os.path.join(checkpoint_path, ckpts[-1])
+    print(f"Path for checkpoint: {last_ckpt_path}")
     checkpoint = torch.load(last_ckpt_path)
 
     # Extract the model state_dict from the checkpoint
@@ -79,8 +81,12 @@ def main(args):
     print(record['X_recon'].shape)
     print(record['Z_est'].shape)
 
+    # Check if the directory exists, if not, create it
+    data_path = config['dataset']['data_path'] + data_folder
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
     # Save the dictionary to a .npz file
-    np.savez(config['dataset']['data_path'] + 'x_z.npz', **record)
+    np.savez(data_path + '/x_z.npz', **record)
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description=__doc__)

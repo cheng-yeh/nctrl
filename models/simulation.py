@@ -55,7 +55,7 @@ class TDRL(pl.LightningModule):
         # Noise density function
         return D.MultivariateNormal(self.base_dist_mean, self.base_dist_var)
 
-    def reconstruction_loss(self, x, x_recon, distribution='sigmoid_gaussian'):
+    def reconstruction_loss(self, x, x_recon, distribution='tanh_gaussian'):
         batch_size = x.shape[0]
         assert batch_size != 0
 
@@ -69,6 +69,11 @@ class TDRL(pl.LightningModule):
 
         elif distribution == 'sigmoid_gaussian':
             x_recon = F.sigmoid(x_recon)
+            recon_loss = F.mse_loss(
+                x_recon, x, size_average=False).div(batch_size)
+
+        elif distribution == 'tanh_gaussian':
+            x_recon = F.tanh(x_recon)
             recon_loss = F.mse_loss(
                 x_recon, x, size_average=False).div(batch_size)
 

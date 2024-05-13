@@ -9,3 +9,5 @@ lightning_logs
 data/
 !*.py
 !*.ipynb
+
+*.sbatch

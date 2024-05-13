@@ -3,7 +3,7 @@
 #SBATCH --account=gts-rs275                     # charge account
 #SBATCH -N 1 --gres=gpu:V100:1                  # Number of nodes and cores per node required
 #SBATCH --mem-per-gpu=80G                       # Memory per core
-#SBATCH -t 60                                   # Duration of the job (Ex: 15 mins)
+#SBATCH -t 600                                  # Duration of the job (Ex: 15 mins)
 #SBATCH -q inferno                              # QOS Name
 #SBATCH -o Report-%j.out                        # Combined output and error messages file
 #SBATCH --mail-type=BEGIN,END,FAIL              # Mail preferences
@@ -15,10 +15,10 @@ srun conda create -n nctrl python=3.10 -y
 srun conda activate nctrl
 srun pip install torch==1.13.1 torchvision torchaudio
 srun pip install -r requirements.txt
-for ((s=1; s<=50; s++))
+for ((s=1; s<=20; s++))
 do
-    for ((r=1; r<=50; r++))
+    for ((r=1; r<=21; r++))
     do
-        srun python eval_tdrl.py -c configs/broderick2019_eeg/broderick2019_eeg_tdrl_test.yaml -s $s -r $r
+        srun python eval_tdrl_hierarchy.py -c configs/broderick2019_eeg/broderick2019_eeg_tdrl_test.yaml -s $s -r $r -m 'LMH'
     done
 done

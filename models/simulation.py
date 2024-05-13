@@ -363,6 +363,171 @@ class CTDRL(pl.LightningModule):
         return [opt_v], []
 
 
+class NCTRLthe(CTDRL):
+    '''
+    NCTRL for THE-EEG.
+    Modify mainly for nullifying the usage of c and A.
+    '''
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.hmm = HMM(n_class=self.n_class, lags=self.lags,
+                       x_dim=self.z_dim, hidden_dim=self.hidden_dim, mode=kwargs['hmm_mode'])
+        self.automatic_optimization = False
+
+    def training_step(self, batch, batch_idx):
+
+        model_opt, hmm_opt = self.optimizers()
+        x, _, _ = batch
+        _, lags_and_length, _ = x.shape
+        # x_flat = x.view(-1, x_dim)
+
+        x_recon, mus, logvars, z_est = self.net(x)
+        E_logp_x, c_est = self.hmm(x)
+        # * (self.alpha_factor**self.current_epoch) if self.current_epoch < 5 else -E_logp_x.mean() * 0.0
+        hmm_loss = -E_logp_x.mean()
+
+        hmm_opt.zero_grad()
+        self.manual_backward(hmm_loss)
+        hmm_opt.step()
+
+        # (batch_size, lags+length, embedding_dim)
+        embeddings = self.c_embeddings(c_est)
+
+        # recon_loss = self.reconstruction_loss(x, x_recon)
+        recon_loss = self.reconstruction_loss(x[:, :self.lags], x_recon[:, :self.lags]) + \
+            (self.reconstruction_loss(
+                x[:, self.lags:], x_recon[:, self.lags:]))/(lags_and_length-self.lags)
+
+        q_dist = D.Normal(mus, torch.exp(logvars / 2))
+        log_qz = q_dist.log_prob(z_est)
+
+        # Past KLD
+        p_dist = D.Normal(torch.zeros_like(
+            mus[:, :self.lags]), torch.ones_like(logvars[:, :self.lags]))
+        log_pz_normal = torch.sum(
+            torch.sum(p_dist.log_prob(z_est[:, :self.lags]), dim=-1), dim=-1)
+        log_qz_normal = torch.sum(
+            torch.sum(log_qz[:, :self.lags], dim=-1), dim=-1)
+        kld_normal = log_qz_normal - log_pz_normal
+        kld_normal = kld_normal.mean()
+        # Future KLD
+        log_qz_laplace = log_qz[:, self.lags:]
+        residuals, logabsdet = self.transition_prior(z_est, embeddings)
+        log_pz_laplace = torch.sum(
+            self.base_dist.log_prob(residuals), dim=1) + logabsdet.sum(dim=1)
+        kld_laplace = (torch.sum(torch.sum(log_qz_laplace, dim=-1),
+                       dim=-1) - log_pz_laplace) / (lags_and_length-self.lags)
+        kld_laplace = kld_laplace.mean()
+
+        # VAE training
+        loss = recon_loss + self.beta * kld_normal + self.gamma * kld_laplace
+
+        model_opt.zero_grad()
+        self.manual_backward(loss)
+        model_opt.step()
+
+        self.log_dict({"train/elbo_loss": loss,
+                       "train/recon_loss": recon_loss,
+                       "train/hmm_loss": hmm_loss,
+                       "train/kld_normal": kld_normal,
+                       "train/kld_laplace": kld_laplace})
+
+    def validation_step(self, batch, batch_idx):
+        x, _, _ = batch
+        _, lags_and_length, _ = x.shape
+        # x_flat = x.view(-1, x_dim)
+
+        x_recon, mus, logvars, z_est = self.net(x)
+        E_logp_x, c_est = self.hmm(x)
+        hmm_loss = -E_logp_x.mean()
+        # (batch_size, lags+length, embedding_dim)
+        embeddings = self.c_embeddings(c_est)
+
+        # recon_loss = self.reconstruction_loss(x, x_recon)
+        recon_loss = self.reconstruction_loss(x[:, :self.lags], x_recon[:, :self.lags]) + \
+            (self.reconstruction_loss(
+                x[:, self.lags:], x_recon[:, self.lags:]))/(lags_and_length-self.lags)
+
+        q_dist = D.Normal(mus, torch.exp(logvars / 2))
+        log_qz = q_dist.log_prob(z_est)
+
+        # Past KLD
+        p_dist = D.Normal(torch.zeros_like(
+            mus[:, :self.lags]), torch.ones_like(logvars[:, :self.lags]))
+        log_pz_normal = torch.sum(
+            torch.sum(p_dist.log_prob(z_est[:, :self.lags]), dim=-1), dim=-1)
+        log_qz_normal = torch.sum(
+            torch.sum(log_qz[:, :self.lags], dim=-1), dim=-1)
+        kld_normal = log_qz_normal - log_pz_normal
+        kld_normal = kld_normal.mean()
+        # Future KLD
+        log_qz_laplace = log_qz[:, self.lags:]
+        residuals, logabsdet = self.transition_prior(z_est, embeddings)
+        log_pz_laplace = torch.sum(
+            self.base_dist.log_prob(residuals), dim=1) + logabsdet.sum(dim=1)
+        kld_laplace = (torch.sum(torch.sum(log_qz_laplace, dim=-1),
+                       dim=-1) - log_pz_laplace) / (lags_and_length-self.lags)
+        kld_laplace = kld_laplace.mean()
+
+        # VAE training
+        loss = recon_loss + self.beta * kld_normal + self.gamma * kld_laplace
+
+        zt_recon = mus.view(-1, self.z_dim).T.detach().cpu().numpy()
+        #zt_true = z.view(-1, self.z_dim).T.detach().cpu().numpy()
+        ct_est = c_est.cpu().flatten().numpy()
+        #ct_true = c[:, self.lags:].cpu().flatten().numpy()
+        # mcc,_,_ = compute_mcc(zt_recon, zt_true, self.correlation)
+        self.validation_step_outputs.append({'loss': loss ,'recon_loss': recon_loss, 'hmm_loss': hmm_loss, 'kld_normal': kld_normal, 'kld_laplace': kld_laplace,
+                                             'raw': {'z': zt_recon, 'z_est': zt_recon, 'c': ct_est, 'c_est': ct_est}})
+
+    def on_validation_epoch_end(self) -> None:
+        outputs = self.validation_step_outputs
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        # mcc = torch.stack([x['mcc'] for x in outputs]).mean()
+        avg_recon_loss = torch.stack([x['recon_loss'] for x in outputs]).mean()
+        avg_hmm_loss = torch.stack([x['hmm_loss'] for x in outputs]).mean()
+        avg_kld_normal = torch.stack([x['kld_normal'] for x in outputs]).mean()
+        avg_kld_laplace = torch.stack(
+            [x['kld_laplace'] for x in outputs]).mean()
+        # check A and acc
+        A_est = torch.log_softmax(
+            self.hmm.log_A.detach().cpu(), dim=1).exp().numpy()
+        A = self.A.detach().cpu().numpy()
+        #c = np.concatenate([x['raw']['c'] for x in outputs], axis=0)
+        c = np.concatenate([x['raw']['c_est'] for x in outputs], axis=0)
+        c_est = np.concatenate([x['raw']['c_est'] for x in outputs], axis=0)
+        #z = np.concatenate([x['raw']['z'] for x in outputs], axis=1)
+        z = np.concatenate([x['raw']['z_est'] for x in outputs], axis=1)
+        z_est = np.concatenate([x['raw']['z_est'] for x in outputs], axis=1)
+        acc, matchidx = compute_acc(c, c_est, C=self.n_class)
+        A_permuted = A[matchidx, :][:, matchidx]
+        A_err = np.abs(A_permuted - A_est).mean()
+        mcc = compute_mcc(z_est, z, self.correlation)
+        if mcc > self.best_mcc:
+            self.best_mcc = mcc
+        self.log_dict({'val/mcc': mcc,
+                       'val/A_err': A_err,
+                       'val/acc': acc,
+                       'val/hmm_loss': avg_hmm_loss,
+                       'val/best_mcc': self.best_mcc}, prog_bar=True)
+        self.log_dict({'val/loss': avg_loss,
+                       'val/recon_loss': avg_recon_loss,
+                       'val/kld_normal': avg_kld_normal,
+                       'val/kld_laplace': avg_kld_laplace})
+        self.validation_step_outputs.clear()
+
+    def configure_optimizers(self):
+        # params = list(self.named_parameters())
+        # require_grad = [(name,param) for name, param in params if param.requires_grad]
+        model_params = [param for name, param in self.named_parameters(
+        ) if not name.startswith('hmm.')]
+        hmm_params = [param for name, param in self.named_parameters(
+        ) if name.startswith('hmm.')]
+        model_opt = torch.optim.AdamW(model_params, lr=self.lr, betas=(0.9, 0.999), weight_decay=0.0001)
+        hmm_opt = torch.optim.Adam(hmm_params, lr=1e-3, betas=(0.9, 0.999), weight_decay=0.0001)
+        return model_opt, hmm_opt
+
 class NCTRL(CTDRL):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -521,7 +686,6 @@ class NCTRL(CTDRL):
         model_opt = torch.optim.AdamW(model_params, lr=self.lr, betas=(0.9, 0.999), weight_decay=0.0001)
         hmm_opt = torch.optim.Adam(hmm_params, lr=1e-3, betas=(0.9, 0.999), weight_decay=0.0001)
         return model_opt, hmm_opt
-
 
 class NCTRLz(NCTRL):
     def training_step(self, batch, batch_idx):

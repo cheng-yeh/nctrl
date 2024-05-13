@@ -9,6 +9,32 @@ from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 import pytorch_lightning as pl
 
+class ARHMNLICADatasetthe(Dataset):
+    '''
+    Dataloader for THE-EEG. Mainly modify for nullifying c and A.
+    '''
+    def __init__(self, data_path):
+        super().__init__()
+        self.path = Path(data_path)
+        self.raw_data = pickle.load(open(self.path/"data.pkl", "rb"))
+        self.meta = json.load(open(self.path/"meta.json", "r"))
+        self.data = {}
+        self.z = torch.Tensor(self.raw_data["Z"]) # (n_samples, n_time_steps, n_latent)
+        self.x = torch.Tensor(self.raw_data["X"])  # (n_samples, n_time_steps, n_features)
+        #self.c = torch.LongTensor(self.raw_data["C"]) # (n_samples, n_time_steps)
+        #self.A = torch.Tensor(self.raw_data["A"])
+        self.c = None
+        self.A = None
+        # self.meta = self.raw_data["meta"]
+    def __len__(self):
+        return len(self.x) 
+    
+    def __getitem__(self, idx):
+        x_t = self.x[idx]
+        z_t = self.z[idx]
+        c_t = None
+        return x_t, z_t, c_t
+
 class ARHMNLICADataset(Dataset):
     def __init__(self, data_path):
         super().__init__()
